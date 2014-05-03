@@ -14,15 +14,11 @@
             elem: $(opts.loadingSelector),
 
             count: 0,
-
-            delay: opts.loadingDelay,
             
             show: function () {
                 this.count++;
 				
-				setTimeout(function(){
-					this.loader.show();
-				},this.delay);
+				opts.loader.show();
 
                 $('body').addClass(opts.loadingBodyClass);
                 return this;
@@ -32,7 +28,7 @@
                 this.count--;
 
                 if (this.count == 0) {
-					this.loader.hide();
+					opts.loader.hide();
                     $('body').removeClass(opts.loadingBodyClass);
                 }
 
@@ -40,7 +36,7 @@
             },
 			
 			setProgress: function(progress){
-				this.elem.attr('data-progress', progress);
+				opts.loader.progress(progress);
 			}
         };
 
@@ -53,13 +49,19 @@
 	
 	window.Loading.DEFAULTS = {
 		loadingBodyClass: "loading",
-		loadingDelay: 300,
-		loader = {
+		loader: {
 			show: function(){
 				NProgress.start();
 			},
 			hide: function(){
 				NProgress.done();
+			},
+			progress: function(progress){
+				NProgress.set(
+					progress>1
+						? progress / 100
+						: progress
+				);
 			}
 		}
 	};
@@ -96,6 +98,7 @@
             // Show/hide loading using specified functions in options
             var _showLoading = null;
             var _hideLoading = null;
+			var _setProgress = null;
             if (typeof (options.showLoading) == "function")
                 _showLoading = options.showLoading;
             if(typeof (options.hideLoading) == "function")
@@ -104,12 +107,25 @@
             if (!_showLoading && !_hideLoading) {
                 _showLoading = loading.show;
                 _hideLoading = loading.hide;
+				_setProgress = loading.setProgress;
             }
 
             // Override beforeSend handler
             
             if (_showLoading) {
                 var _beforeSend = options.beforeSend || function () {};
+				var _xhr = options.xhr || function() { return new window.XMLHttpRequest(); };
+				
+				options.xhr = function(){
+					var xhr = _xhr();
+					xhr.upload.addEventListener("progress",function(e){
+						if (e.lengthComputable) {
+							var completed = e.loaded / e.total;
+							_setProgress.call(loading,completed);
+						}
+					},false);
+					return xhr;
+				}
 				
                 options.beforeSend = function (jqXHR, settings) {
                     var ret = _beforeSend(jqXHR, settings);
@@ -132,7 +148,7 @@
                     _complete = [_complete];
 
                 _complete.push(function (jqXHR, textStatus) {
-                    _hideLoading.call(loading);
+					_hideLoading.call(loading);
                 });
 
                 options.complete = _complete;
