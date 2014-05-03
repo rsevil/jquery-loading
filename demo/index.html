@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"> 
+		<title> Ajaxify </title>
+	</head>
+	<body data-loading-selector="#loading" data-loading-body-class="loading" data-loading-delay="300">
+		<button id="btn">ajax</button>
+		<script src="../lib/jquery-2.1.0.min.js"></script>
+		<script src='../loading.js'></script>
+		<script>
+			$(document).ready(function(){
+				$('#btn').click(function() {
+					$.ajax('ajax.php',{
+						success: function(data){
+							console.log(data);
+						}
+					})
+				});
+			});
+		</script>
+	</body>
+</html>
+
+  

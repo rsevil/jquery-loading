@@ -19,11 +19,12 @@
             
             show: function () {
                 this.count++;
-
-                this.elem.delay(this.delay).fadeIn();
+				
+				setTimeout(function(){
+					this.loader.show();
+				},this.delay);
 
                 $('body').addClass(opts.loadingBodyClass);
-				this.setProgress(0);
                 return this;
             },
 
@@ -31,7 +32,7 @@
                 this.count--;
 
                 if (this.count == 0) {
-                    this.elem.stop().clearQueue().hide(0);
+					this.loader.hide();
                     $('body').removeClass(opts.loadingBodyClass);
                 }
 
@@ -51,9 +52,16 @@
     window.Loading = Loading;
 	
 	window.Loading.DEFAULTS = {
-		loadingSelector: '.modal_loading',
-		loadingBodyClass: "loading"
+		loadingBodyClass: "loading",
 		loadingDelay: 300,
+		loader = {
+			show: function(){
+				NProgress.start();
+			},
+			hide: function(){
+				NProgress.done();
+			}
+		}
 	};
 	
 	var loading = new Loading();
@@ -102,16 +110,6 @@
             
             if (_showLoading) {
                 var _beforeSend = options.beforeSend || function () {};
-				var _xhr = options.xhr || function(){return new window.XMLHttpRequest()};
-				
-				options.xhr = function(){
-					var xhr = _xhr();
-					xhr.upload.addEventListener("progress",function(e){
-						if (e.lengthComputable)
-							loading.setProgress(e.loaded / e.total);
-					},false);
-					return xhr;
-				}
 				
                 options.beforeSend = function (jqXHR, settings) {
                     var ret = _beforeSend(jqXHR, settings);
