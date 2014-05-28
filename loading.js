@@ -11,7 +11,6 @@
 		);
 	
         return {
-            elem: $(opts.loadingSelector),
 
             count: 0,
             
